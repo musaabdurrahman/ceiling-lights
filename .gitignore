@@ -1,0 +1,12 @@
+# Virtual environment
+.venv/
+
+# Python bytecode cache
+__pycache__/
+*.pyc
+
+# macOS Finder metadata
+.DS_Store
+
+# Personal editor settings
+.vscode/
