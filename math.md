@@ -8,9 +8,9 @@ A ceiling is made up of discrete blocks and populated with lights (that each tak
 Given a certain dimension $D$ and gap $g$, we need to find a distance from the wall $w$ and number of lights $n$ that will ensure the ceiling lines up.
 
 For example, a 31 block wide ceiling with a gap of 5 empty spaces between each light would work with a margin of 3 at each wall because:
-$$
+```math
 3+1+5+1+5+1+5+1+5+1+3=31
-$$
+```
 
 ## The Equation:
 
@@ -40,22 +40,23 @@ $$
 #### Second condition:
 The gap between the wall and the first light must be non-negative, so $w \ge 0$ . This gives an upper bound on the number of lights $n$:
 
-$$
+```math
 \begin{gathered}
 \frac{D+g-n(g+1)}{2} \ge 0 \\[6pt]
 D+g-n(g+1) \ge 0 \\[6pt]
 D+g \ge n(g+1) \\[6pt]
 \boxed{n \le \left\lfloor\frac{D+g}{g+1}\right\rfloor}
 \end{gathered}
-$$
+```
 
 $g \ge 0$ is assumed so dividing by $g+1$ keeps the direction of the inequality sign the same.
 
 #### Third condition:
 There must be at least one light:
-$$
+
+```math
 n \ge 1
-$$
+```
 
 ## Parity Analysis
 
