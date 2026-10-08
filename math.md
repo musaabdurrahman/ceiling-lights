@@ -15,9 +15,9 @@ For example, a 31 block wide ceiling with a gap of 5 empty spaces between each l
 ## The Equation:
 
 Any valid configuration of lights must satisfy the equation:
-$$
+```math
 D = 2w + n +(n-1)g
-$$
+```
 This is simply because the total number of lights $n$ plus the space taken by the $(n-1)$ gaps between them plus the two margins at each end $2w$ must equal the length of the ceiling for it all to line up.
 
 ### Conditions for a valid configuration:
@@ -154,7 +154,28 @@ $w$ decreases linearly with $n$, so each extra light reduces the wall margin by 
 
 The parity condition and the step pattern are the same fact seen two ways: the number of lights can only change by amounts whose freed space divides evenly between the two walls.
 
-### Summary
+
+## A Geometric Argument
+
+A symmetric arrangement must place its centre exactly at the centre of the room. Whether that centre is a block or a line between two blocks depends on the parity of the dimension and the pattern separately.
+
+The **room's centre** is a block when $D$ is odd, and a line between two blocks when $D$ is even.
+
+The **pattern's centre** is:
+- a light (a block) when there is a centre light,
+- the midpoint of the central gap when there are two central lights: a block if $g$ is odd, a line if $g$ is even.
+
+A valid configuration exists only when these two centres are the same kind. This gives the same two cases as the modular arithmetic:
+
+- **$g$ odd:** whether the pattern has a centre light or two central lights, its centre is always a block (either the light itself, or the middle block of an odd-length gap). So $D$ must be odd, and then any number of lights works.
+- **$g$ even:** a centre light gives a block centre, two central lights give a line centre. So the type of centre must be chosen to match $D$.
+
+Once a valid centre is fixed, more lights are added in pairs — one on each side — each new pair sitting one period $g + 1$ further from the centre than the last. As each pair is added, the wall margin $w$ shrinks by $\frac{g+1}{2}$: the space freed at each wall is taken up by the new light and its gap. The configuration with the fewest lights has the largest $w$; the one with the most lights has the smallest, reaching $w = 0$ when the outermost lights sit flush against the walls.
+
+This "radiating outwards" picture also explains the step sizes in the solution table. Lights are always added in pairs, so $n$ changes by 2 within any one family of solutions. When $g$ is odd, both families (centre light and two central lights) are valid, and together they cover every integer $n$, giving a step of 1 in the table. When $g$ is even, only one family matches the room, so the step is 2.
+
+## Summary
+
 
 | | $g$ odd | $g$ even |
 |---|---|---|
