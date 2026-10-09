@@ -35,3 +35,26 @@ def test_gap_zero_matches_hand_derivation():
         (2, 4) , (4, 3), (6, 2), (8, 1), (10, 0)
     ]
 
+def brute_force_configurations(dimension: int, gap: int) -> list[tuple[int, int]]:
+    """Return every valid (lights, wall) configuration for one dimension.
+
+    A configuration is valid when
+        dimension = 2 * wall + lights + (lights - 1) * gap
+    with lights >= 1 and wall >= 0, all whole numbers.
+    Results are ordered by number of lights, smallest first.
+
+    This is a brute-force implementation for testing purposes - it uses the raw definition of a valid configuration, rather than the derived formula used in find_configurations.
+    Try every possible number of lights and wall gaps, and check if the configuration is valid. This is much slower than find_configurations, but it is guaranteed to be correct.
+    """
+    configurations = []
+    for lights in range(1, dimension + 1):
+        for wall in range(0, dimension + 1):
+            if dimension == 2 * wall + lights + (lights - 1) * gap:
+                configurations.append((lights, wall))
+
+    return configurations
+
+def test_find_configurations_matches_brute_force():
+    for dimension in range(1, 60):
+        for gap in range(0, 15):
+            assert find_configurations(dimension, gap) == brute_force_configurations(dimension, gap), f"Mismatch for D={dimension}, g={gap}"
