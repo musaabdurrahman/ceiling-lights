@@ -1,6 +1,6 @@
 import pytest
 
-from solver import find_configurations
+from solver import find_configurations, valid_light_counts, wall_spacing
 
 
 def test_31_gap_5_matches_hand_derivation():
@@ -58,3 +58,16 @@ def test_find_configurations_matches_brute_force():
     for dimension in range(1, 60):
         for gap in range(0, 15):
             assert find_configurations(dimension, gap) == brute_force_configurations(dimension, gap), f"Mismatch for D={dimension}, g={gap}"
+
+
+def test_huge_dimension_is_described_without_listing():
+    dimension, gap = 10**12 + 1, 5
+    lights = valid_light_counts(dimension, gap)
+
+    assert len(lights) > 10**11  # far too many to list
+
+    # Spot-check the first and last solutions against the definition.
+    for n in (lights[0], lights[-1]):
+        w = wall_spacing(dimension, gap, n)
+        assert w >= 0
+        assert dimension == 2 * w + n + (n - 1) * gap
