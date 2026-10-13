@@ -14,12 +14,34 @@ def find_configurations(dimension: int, gap: int) -> list[tuple[int, int]]:
     max_lights = (dimension + gap) // (gap + 1)
     configurations = []
 
-    for lights in range(1, max_lights + 1):
+
+    #Four cases for (D,g) - if D is even and g is odd, there are no valid configurations.
+    #If D is even and g is even, the first n will be two (two lights beside the middle) and the step between valid n's will be two
+    #If D is odd and g is even, the first n will be one (one light in the middle) and the step between valid n's will be two
+    #If D is odd and g is odd, the first n will be one (one light in the middle) and the step between valid n's will be one to account for the alternating cases where either there is a light in the middle or there is the middle of a gap in the middle
+
+
+    if dimension % 2 == 0 and gap % 2 == 1:
+        # If D is even and g is odd, there are no valid configurations.
+        return []
+
+    if dimension % 2 == 0:
+        first = 2
+    else:
+        first = 1
+
+    if gap % 2 == 0:
+        step = 2
+    else:
+        step = 1
+    
+
+    for lights in range(first, max_lights + 1, step):
         numerator = dimension + gap - lights * (gap + 1) #computes D+g-n(g+1)
-        if numerator % 2 == 0:
-            wall = numerator // 2 #w=(D+g-n(G+1))/2
-            assert wall >= 0 #for loop ensures the number of lights never exceeds (D+g)/(g+1), so wall is always non-negative
-            configurations.append((lights, wall))
+        assert numerator % 2 == 0
+        wall = numerator // 2 #w=(D+g-n(G+1))/2
+        assert wall >= 0 #for loop ensures the number of lights never exceeds (D+g)/(g+1), so wall is always non-negative
+        configurations.append((lights, wall))
 
     return configurations
 
