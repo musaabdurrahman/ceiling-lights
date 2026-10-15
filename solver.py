@@ -83,6 +83,20 @@ def find_configurations(dimension: int, gap: int) -> list[tuple[int, int]]:
         for lights in valid_light_counts(dimension, gap)
     ]
 
+def light_positions(dimension: int, gap: int, lights: int) -> range:
+    """Return the block positions of the lights, numbered from 1.
+
+    Block 1 is the block next to the first wall and block `dimension`
+    is the block next to the far wall. `lights` must be a valid number
+    of lights for this dimension and gap.
+    """
+    wall = wall_spacing(dimension, gap, lights)
+    first = wall + 1
+    step = gap + 1
+    return range(first, dimension - wall + 1, step)
+
+
+
 
 
 if __name__ == "__main__":

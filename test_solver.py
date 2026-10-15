@@ -1,6 +1,6 @@
 import pytest
 
-from solver import find_configurations, valid_light_counts, wall_spacing
+from solver import find_configurations, valid_light_counts, wall_spacing, light_positions
 
 
 def test_31_gap_5_matches_hand_derivation():
@@ -71,3 +71,22 @@ def test_huge_dimension_is_described_without_listing():
         w = wall_spacing(dimension, gap, n)
         assert w >= 0
         assert dimension == 2 * w + n + (n - 1) * gap
+
+
+def test_list_light_positions_31_5_5():
+    assert list(light_positions(31, 5, 5)) == [4, 10, 16, 22, 28]
+
+def test_light_positions_are_symmetric():
+    for dimension in range(1, 60):
+        for gap in range(0, 15):
+            for lights in valid_light_counts(dimension, gap):
+                positions = list(light_positions(dimension, gap, lights))
+
+                assert len(positions) == lights, (
+                    f"Wrong count for D={dimension}, g={gap}, n={lights}"
+                )
+
+                for left, right in zip(positions, reversed(positions)):
+                    assert left + right == dimension + 1, (
+                        f"Not symmetric for D={dimension}, g={gap}, n={lights}"
+                    )
