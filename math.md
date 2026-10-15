@@ -154,6 +154,44 @@ $w$ decreases linearly with $n$, so each extra light reduces the wall margin by 
 
 The parity condition and the step pattern are the same fact seen two ways: the number of lights can only change by amounts whose freed space divides evenly between the two walls.
 
+## Light positions
+
+Blocks are numbered from $1$ (the block next to the first wall) to $D$ (the block next to the far wall). Numbering the lights from $k = 0$, the position of the $k$-th light is given by an nth term formula:
+
+```math
+p_k = w + 1 + k(g+1)
+```
+
+Before the $k$-th light there are $w$ wall blocks, plus $k$ earlier lights, each followed by a gap of $g$. Each light and its gap form one period of $g + 1$ blocks, so together they take up $k(g+1)$ blocks. The light itself then sits in the next block, which gives the $+1$.
+
+For example, with $w = 3$ and $g = 5$ the positions are $4, 10, 16, 22, 28$.
+
+### Position of the last light
+
+The last light is $k = n - 1$. Substituting:
+
+```math
+\begin{aligned}
+p_{n-1} &= w + 1 + (n-1)(g+1) \\
+        &= w + 1 + gn - g + n - 1 \\
+        &= w + n + (n-1)g
+\end{aligned}
+```
+
+From the original equation $D = 2w + n + (n-1)g$, subtracting $w$ from both sides gives:
+
+```math
+D - w = w + n + (n-1)g
+```
+
+So:
+
+```math
+p_{n-1} = D - w
+```
+
+The last light is exactly $w$ blocks from the far wall, the same distance as the first light is from the near wall. This confirms algebraically that the configuration is symmetric.
+
 
 ## A Geometric Argument
 
