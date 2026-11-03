@@ -1,49 +1,12 @@
-# def find_configurations(dimension: int, gap: int) -> list[tuple[int, int]]:
-#     """Return every valid (lights, wall) configuration for one dimension.
+"""Mathematical solver for symmetric, evenly spaced ceiling lights.
 
-#     A configuration is valid when
-#         dimension = 2 * wall + lights + (lights - 1) * gap
-#     with lights >= 1 and wall >= 0, all whole numbers.
-#     Results are ordered by number of lights, smallest first.
-#     """
-#     if dimension < 1:
-#         raise ValueError("dimension must be at least 1")
-#     if gap < 0:
-#         raise ValueError("gap must be non-negative")
+For one dimension D with gap g, a configuration of n lights and wall
+spacing w is valid when D = 2w + n + (n - 1)g, with n >= 1 and w >= 0,
+all whole numbers. See MATH.md for the derivation.
+Blocks are numbered from 1.
+"""
 
-#     max_lights = (dimension + gap) // (gap + 1)
-#     configurations = []
-
-
-#     #Four cases for (D,g) - if D is even and g is odd, there are no valid configurations.
-#     #If D is even and g is even, the first n will be two (two lights beside the middle) and the step between valid n's will be two
-#     #If D is odd and g is even, the first n will be one (one light in the middle) and the step between valid n's will be two
-#     #If D is odd and g is odd, the first n will be one (one light in the middle) and the step between valid n's will be one to account for the alternating cases where either there is a light in the middle or there is the middle of a gap in the middle
-
-
-#     if dimension % 2 == 0 and gap % 2 == 1:
-#         # If D is even and g is odd, there are no valid configurations.
-#         return []
-
-#     if dimension % 2 == 0:
-#         first = 2
-#     else:
-#         first = 1
-
-#     if gap % 2 == 0:
-#         step = 2
-#     else:
-#         step = 1
-    
-
-#     for lights in range(first, max_lights + 1, step):
-#         numerator = dimension + gap - lights * (gap + 1) #computes D+g-n(g+1)
-#         assert numerator % 2 == 0
-#         wall = numerator // 2 #w=(D+g-n(G+1))/2
-#         assert wall >= 0 #for loop ensures the number of lights never exceeds (D+g)/(g+1), so wall is always non-negative
-#         configurations.append((lights, wall))
-
-#     return configurations
+from dataclasses import dataclass
 
 def valid_light_counts(dimension: int, gap: int) -> range:
     """Return every valid number of lights, as a range.
@@ -86,16 +49,41 @@ def find_configurations(dimension: int, gap: int) -> list[tuple[int, int]]:
 def light_positions(dimension: int, gap: int, lights: int) -> range:
     """Return the block positions of the lights, numbered from 1.
 
-    Block 1 is the block next to the first wall and block `dimension`
-    is the block next to the far wall. `lights` must be a valid number
-    of lights for this dimension and gap.
+    The k-th light (from k = 0) is at w + 1 + k(g + 1); the last is at D - w.
     """
     wall = wall_spacing(dimension, gap, lights)
-    first = wall + 1
-    step = gap + 1
-    return range(first, dimension - wall + 1, step)
+    return range(wall + 1, dimension - wall + 1, gap + 1)
+
+@dataclass(frozen=True)
+class CeilingLayout:
+    """A rectangular ceiling's lights, described by their positions.
+
+    A light sits at every (x, y) where x is in x_positions (along the width)
+    and y is in y_positions (along the length). Blocks are numbered from 1.
+    """
+
+    x_positions: range
+    y_positions: range
+
+    def total_lights(self) -> int:
+        return len(self.x_positions) * len(self.y_positions)
+
+    def has_light(self, x: int, y: int) -> bool:
+        return x in self.x_positions and y in self.y_positions
 
 
+def ceiling_layout(
+    width: int, width_gap: int, width_lights: int,
+    length: int, length_gap: int, length_lights: int,
+) -> CeilingLayout:
+    """Build the layout for a width × length ceiling.
+
+    Each direction is solved independently, with its own gap.
+    """
+    return CeilingLayout(
+        x_positions=light_positions(width, width_gap, width_lights),
+        y_positions=light_positions(length, length_gap, length_lights),
+    )
 
 
 

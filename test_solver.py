@@ -1,6 +1,6 @@
 import pytest
 
-from solver import find_configurations, valid_light_counts, wall_spacing, light_positions
+from solver import find_configurations, valid_light_counts, wall_spacing, light_positions, ceiling_layout
 
 
 def test_31_gap_5_matches_hand_derivation():
@@ -90,3 +90,16 @@ def test_light_positions_are_symmetric():
                     assert left + right == dimension + 1, (
                         f"Not symmetric for D={dimension}, g={gap}, n={lights}"
                     )
+
+def test_layout_31_by_38_with_different_gaps():
+    layout = ceiling_layout(31, 5, 5, 38, 4, 8)
+    assert layout.total_lights() == 40
+    assert list(layout.y_positions) == [2, 7, 12, 17, 22, 27, 32, 37]
+    assert layout.has_light(4, 2)
+    assert not layout.has_light(4, 3)
+
+def test_huge_layout_counts_without_listing():
+    dimension = 10**12 + 1
+    n = valid_light_counts(dimension, 5)[-1]
+    layout = ceiling_layout(dimension, 5, n, dimension, 5, n)
+    assert layout.total_lights() == n * n
