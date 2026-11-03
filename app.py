@@ -11,6 +11,7 @@ from solver import (
     nearest_light_count,
     valid_light_counts,
     wall_spacing,
+    alternative_gaps
 )
 
 MAX_OPTIONS = 200  # list configurations in a dropdown up to this many
@@ -25,21 +26,33 @@ def row_diagram(left_wall: int, lights: int, gap: int, right_wall: int) -> str:
         middle = f"{three} | {gap} | … {lights - 6:,} more lights … | {gap} | {three}"
     return f"{left_wall} | {middle} | {right_wall}"
 
-
-def choose_dimension(label: str, dimension: int, gap: int, key: str) -> range | None:
+def choose_dimension(label: str, dimension: int, gap: int, key: str) -> range:
     """Show the options for one dimension and return the chosen light positions."""
     st.subheader(f"{label}: {dimension:,} blocks")
+    solve_size, solve_gap, uneven = dimension, gap, False
     counts = valid_light_counts(dimension, gap)
 
-    if not counts:
+    if counts:
+        st.success(f"{len(counts):,} exact configurations with a {gap}-block gap.")
+    else:
         st.warning(f"No exact symmetric configuration exists with a {gap}-block gap.")
-        return None
-
-    st.success(f"{len(counts):,} exact configurations with a {gap}-block gap.")
+        options = {
+            f"Use a {g}-block gap instead": (dimension, g, False)
+            for g in alternative_gaps(dimension, gap)
+        }
+        # Solving D - 1 and leaving the spare block at the far wall gives
+        # walls of w and w + 1: the smallest possible asymmetry.
+        options[f"Keep the {gap}-block gap; one wall is a block wider"] = (
+            dimension - 1, gap, True,
+        )
+        choice = st.radio("Closest alternatives", list(options),
+                          key=f"{key}_alt_{dimension}_{gap}")
+        solve_size, solve_gap, uneven = options[choice]
+        counts = valid_light_counts(solve_size, solve_gap)
 
     # Default: walls about half a gap wide, as if the pattern continued.
-    default = nearest_light_count(dimension, gap, gap // 2)
-    widget_key = f"{key}_{dimension}_{gap}"
+    default = nearest_light_count(solve_size, solve_gap, solve_gap // 2)
+    widget_key = f"{key}_{solve_size}_{solve_gap}"
 
     if len(counts) <= MAX_OPTIONS:
         options_list = list(counts)
@@ -48,27 +61,29 @@ def choose_dimension(label: str, dimension: int, gap: int, key: str) -> range | 
             options_list,
             index=options_list.index(default),
             format_func=lambda n: (
-                f"{wall_spacing(dimension, gap, n)} blocks from the wall · {n} lights"
+                f"{wall_spacing(solve_size, solve_gap, n)} blocks from the wall"
+                f" · {n} lights"
             ),
             key=widget_key,
         )
     else:
         preferred = st.number_input("Preferred wall spacing", min_value=0,
-                                    value=gap // 2, step=1, key=widget_key)
-        lights = nearest_light_count(dimension, gap, int(preferred))
+                                    value=solve_gap // 2, step=1, key=widget_key)
+        lights = nearest_light_count(solve_size, solve_gap, int(preferred))
         st.caption(f"{len(counts):,} configurations exist; "
                    "the one nearest your preference is shown.")
 
-    wall = wall_spacing(dimension, gap, lights)
-    st.markdown(f"**Wall spacing:** {wall} · **Lights:** {lights:,} · **Gap:** {gap}")
-    st.code(row_diagram(wall, lights, gap, wall), language=None)
+    wall = wall_spacing(solve_size, solve_gap, lights)
+    right_wall = wall + 1 if uneven else wall
+    walls = f"{wall} and {right_wall}" if uneven else f"{wall}"
+    st.markdown(f"**Wall spacing:** {walls} · **Lights:** {lights:,} · **Gap:** {solve_gap}")
+    st.code(row_diagram(wall, lights, solve_gap, right_wall), language=None)
 
-    positions = light_positions(dimension, gap, lights)
+    positions = light_positions(solve_size, solve_gap, lights)
     shown = ", ".join(str(p) for p in positions[:20])
     more = ", …" if len(positions) > 20 else ""
     st.caption(f"Light positions: {shown}{more}")
     return positions
-
 
 st.set_page_config(page_title="Ceiling Light Planner", page_icon="💡")
 st.title("💡 Ceiling Light Planner")
