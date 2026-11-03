@@ -54,6 +54,32 @@ def light_positions(dimension: int, gap: int, lights: int) -> range:
     wall = wall_spacing(dimension, gap, lights)
     return range(wall + 1, dimension - wall + 1, gap + 1)
 
+
+
+def nearest_light_count(dimension: int, gap: int, preferred_wall: int) -> int | None:
+    """Return the valid number of lights whose wall spacing is closest to
+    preferred_wall, or None if no configuration exists.
+
+    O(1): solving w = preferred for n gives n(g + 1) = D + g - 2w, so we find
+    where that n falls in the range of valid counts and compare the two
+    neighbouring valid counts. Ties go to fewer lights.
+    """
+    counts = valid_light_counts(dimension, gap)
+    if not counts:
+        return None
+
+    period = gap + 1
+    target = dimension + gap - 2 * preferred_wall
+    k = (target - counts.start * period) // (counts.step * period)
+    last = len(counts) - 1
+    candidates = {counts[min(max(i, 0), last)] for i in (k, k + 1)}
+    return min(
+        candidates,
+        key=lambda n: (abs(wall_spacing(dimension, gap, n) - preferred_wall), n),
+    )
+
+
+
 @dataclass(frozen=True)
 class CeilingLayout:
     """A rectangular ceiling's lights, described by their positions.

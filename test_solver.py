@@ -1,6 +1,6 @@
 import pytest
 
-from solver import find_configurations, valid_light_counts, wall_spacing, light_positions, ceiling_layout
+from solver import find_configurations, valid_light_counts, wall_spacing, light_positions, ceiling_layout, nearest_light_count
 
 
 def test_31_gap_5_matches_hand_derivation():
@@ -103,3 +103,20 @@ def test_huge_layout_counts_without_listing():
     n = valid_light_counts(dimension, 5)[-1]
     layout = ceiling_layout(dimension, 5, n, dimension, 5, n)
     assert layout.total_lights() == n * n
+
+
+def test_nearest_light_count_matches_brute_force():
+    for dimension in range(1, 60):
+        for gap in range(0, 15):
+            counts = valid_light_counts(dimension, gap)
+            for preferred in range(0, dimension + 2):
+                result = nearest_light_count(dimension, gap, preferred)
+                if not counts:
+                    assert result is None
+                    continue
+                best = min(
+                    counts,
+                    key=lambda n: (abs(wall_spacing(dimension, gap, n) - preferred), n),
+                )
+                assert result == best, f"D={dimension}, g={gap}, w*={preferred}"
+
