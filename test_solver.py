@@ -1,6 +1,6 @@
 import pytest
 
-from solver import find_configurations, valid_light_counts, wall_spacing, light_positions, ceiling_layout, nearest_light_count
+from solver import find_configurations, valid_light_counts, wall_spacing, light_positions, ceiling_layout, nearest_light_count, alternative_gaps
 
 
 def test_31_gap_5_matches_hand_derivation():
@@ -120,3 +120,25 @@ def test_nearest_light_count_matches_brute_force():
                 )
                 assert result == best, f"D={dimension}, g={gap}, w*={preferred}"
 
+
+
+def test_alternative_gaps_are_valid_and_nearest():
+    for dimension in range(1, 60):
+        for gap in range(0, 60):
+            alternatives = alternative_gaps(dimension, gap)
+            if valid_light_counts(dimension, gap):
+                assert alternatives == []
+                continue
+
+            assert alternatives, f"No alternative for D={dimension}, g={gap}"
+            best = min(abs(a - gap) for a in alternatives)
+            for a in alternatives:
+                assert valid_light_counts(dimension, a), f"D={dimension}, g'={a}"
+                assert abs(a - gap) == best
+
+            # Nothing closer works, and nothing equally close is missing.
+            for other in range(0, dimension + gap + 2):
+                if abs(other - gap) < best:
+                    assert not valid_light_counts(dimension, other)
+                elif abs(other - gap) == best and valid_light_counts(dimension, other):
+                    assert other in alternatives

@@ -79,6 +79,24 @@ def nearest_light_count(dimension: int, gap: int, preferred_wall: int) -> int | 
     )
 
 
+def alternative_gaps(dimension: int, gap: int) -> list[int]:
+    """Return the gaps nearest to `gap` that do have an exact configuration.
+
+    Returns [] if `gap` already works. "Nearest" means smallest |g' - g|.
+
+    Only an even dimension can lack a solution: an odd one always fits a
+    single centred light. An even dimension needs an even gap of at most
+    D - 2 (two lights either side of the centre line). So the answer is
+    found directly, with no search.
+    """
+    if valid_light_counts(dimension, gap):
+        return []
+
+    largest_gap = dimension - 2
+    if gap > largest_gap:
+        return [largest_gap]
+    return [gap - 1, gap + 1]  # gap is odd here, so both neighbours are even
+
 
 @dataclass(frozen=True)
 class CeilingLayout:
@@ -116,5 +134,5 @@ def ceiling_layout(
 if __name__ == "__main__":
     print(find_configurations(31, 5))
     print(find_configurations(38, 5))
-    print(find_configurations(38, 4))
-    print(find_configurations(2, 2))
+    print(alternative_gaps(38, 5))
+    print(ceiling_layout(31, 5, 5, 38, 4, 8).total_lights())
