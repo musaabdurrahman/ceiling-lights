@@ -4,17 +4,25 @@ Run with:  streamlit run app.py
 All the mathematics lives in solver.py; this file only handles input and display.
 """
 
+import numpy as np
 import streamlit as st
 
 from solver import (
+    CeilingLayout,
+    alternative_gaps,
     light_positions,
     nearest_light_count,
     valid_light_counts,
     wall_spacing,
-    alternative_gaps
 )
 
-MAX_OPTIONS = 200  # list configurations in a dropdown up to this many
+MAX_OPTIONS = 200       # list configurations in a dropdown up to this many
+MAX_DRAWN_BLOCKS = 200  # largest number of blocks drawn along each side
+
+LIGHT = (255, 200, 40)
+MARGIN = (205, 205, 210)
+CEILING = (240, 240, 242)
+GRID = (150, 150, 155)
 
 
 def row_diagram(left_wall: int, lights: int, gap: int, right_wall: int) -> str:
@@ -25,6 +33,7 @@ def row_diagram(left_wall: int, lights: int, gap: int, right_wall: int) -> str:
         three = f" | {gap} | ".join(["💡"] * 3)
         middle = f"{three} | {gap} | … {lights - 6:,} more lights … | {gap} | {three}"
     return f"{left_wall} | {middle} | {right_wall}"
+
 
 def choose_dimension(label: str, dimension: int, gap: int, key: str) -> range:
     """Show the options for one dimension and return the chosen light positions."""
@@ -85,6 +94,33 @@ def choose_dimension(label: str, dimension: int, gap: int, key: str) -> range:
     st.caption(f"Light positions: {shown}{more}")
     return positions
 
+
+def ceiling_image(layout: CeilingLayout, width: int, length: int) -> np.ndarray:
+    """Draw the ceiling (or its top-left corner, if huge) as an RGB image."""
+    shown_w = min(width, MAX_DRAWN_BLOCKS)
+    shown_l = min(length, MAX_DRAWN_BLOCKS)
+    xs, ys = layout.x_positions, layout.y_positions
+
+    # has_light is O(1), so drawing costs one check per visible block.
+    lights = np.array([[layout.has_light(x, y) for x in range(1, shown_w + 1)]
+                       for y in range(1, shown_l + 1)])
+    x_margin = np.array([x < xs[0] or x > xs[-1] for x in range(1, shown_w + 1)])
+    y_margin = np.array([y < ys[0] or y > ys[-1] for y in range(1, shown_l + 1)])
+    margin = y_margin[:, None] | x_margin[None, :]
+
+    image = np.empty((shown_l, shown_w, 3), dtype=np.uint8)
+    image[:] = CEILING
+    image[margin] = MARGIN
+    image[lights] = LIGHT
+
+    # Scale each block up to a square of pixels and draw grid lines.
+    cell = max(3, min(24, 720 // max(shown_w, shown_l)))
+    image = image.repeat(cell, axis=0).repeat(cell, axis=1)
+    image[cell - 1::cell, :] = GRID
+    image[:, cell - 1::cell] = GRID
+    return image
+
+
 st.set_page_config(page_title="Ceiling Light Planner", page_icon="💡")
 st.title("💡 Ceiling Light Planner")
 st.write(
@@ -109,3 +145,14 @@ with left:
     xs = choose_dimension("Width", width, gap, "width")
 with right:
     ys = choose_dimension("Length", length, length_gap, "length")
+
+layout = CeilingLayout(x_positions=xs, y_positions=ys)
+
+st.divider()
+st.subheader("Ceiling")
+st.metric("Total lights", f"{layout.total_lights():,}")
+
+caption = "Width runs left to right, length top to bottom. Yellow: lights. Darker grey: wall margins."
+if width > MAX_DRAWN_BLOCKS or length > MAX_DRAWN_BLOCKS:
+    caption += f" Large room: showing the top-left {MAX_DRAWN_BLOCKS} × {MAX_DRAWN_BLOCKS} blocks."
+st.image(ceiling_image(layout, width, length), caption=caption)
